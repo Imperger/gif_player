@@ -75,6 +75,7 @@ function UpdateUI(delta: number) {
 
     if (AtEnd()) {
         isPlaying.value = false;
+        playTime.value = innerPlayTime;
         return;
     }
 
