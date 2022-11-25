@@ -17,7 +17,7 @@ export class FrameBuilder {
 
         this.gifCanvas.width = frames[0].dims.width;
         this.gifCanvas.height = frames[0].dims.height;
-        this.gifCtx = this.gifCanvas.getContext('2d') ?? Never('Failed to get the gif 2d context');
+        this.gifCtx = this.gifCanvas.getContext('2d', { willReadFrequently: true }) ?? Never('Failed to get the gif 2d context');
         this.framesCache = Array.from({ length: frames.length });
 
         this.PrerenderFrames();
