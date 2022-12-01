@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
+import { SquashArray } from '../common/squash-array';
+import { SegmentsSquasher } from './segments-squasher';
 
 const props = defineProps({
     playTime: { required: true, type: Number },
@@ -15,20 +17,24 @@ const emit = defineEmits<Emits>();
 
 const wrapper = ref<HTMLElement>();
 
-const segmentsRelativeWidth = computed(() => [
-    ...props.segments.map((w, i, s) => (w - s[i - 1]) / props.duration * 100).slice(1),
-    (props.duration - props.segments[props.segments.length - 1]) / props.duration * 100]);
+const segments = computed(() => {
+    const segmentsRelWidth = [
+        ...props.segments.map((p, i, s) => ({ width: (p - s[i - 1]) / props.duration * 100, pts: s[i - 1] })).slice(1),
+        { width: (props.duration - props.segments[props.segments.length - 1]) / props.duration * 100, pts: props.segments[props.segments.length - 1] }];
+
+    return SquashArray(segmentsRelWidth, SegmentsSquasher(1));
+});
 
 function Rel(value: number): string {
     return value + '%';
 }
 
 function EndPTS(idx: number): number {
-    return props.segments[idx + 1] ?? props.duration;
+    return segments.value[idx + 1]?.pts ?? props.duration;
 }
 
 function SegmentProgress(idx: number): number {
-    const begin = props.segments[idx];
+    const begin = segments.value[idx].pts;
     const end = EndPTS(idx);
 
     if (props.playTime > end) {
@@ -40,7 +46,7 @@ function SegmentProgress(idx: number): number {
     }
 }
 
-function segmentKey(idx: number, width: number) {
+function SegmentKey(idx: number, width: number) {
     return `${idx}_${width}`;
 }
 
@@ -58,9 +64,10 @@ function Seek(e: MouseEvent, ref?: HTMLElement) {
 
 <template>
     <div ref="wrapper" @click="Seek($event, wrapper)" class="segments-wrapper">
-        <div v-for="(width, idx) in segmentsRelativeWidth" :key="segmentKey(idx, width)" :style="{ width: Rel(width) }"
+        <div v-for="(s, idx) in segments" :key="SegmentKey(idx, s.width)" :style="{ width: Rel(s.width) }"
             class="segment">
-            <div class="segment-progress" :style="{ width: Rel(SegmentProgress(idx)) }"></div>
+            <div class="segment-progress" :class="{ 'segment-squashed': s.squashed }"
+                :style="{ width: Rel(SegmentProgress(idx)) }"></div>
         </div>
     </div>
 </template>
@@ -98,5 +105,9 @@ function Seek(e: MouseEvent, ref?: HTMLElement) {
 .segment-progress {
     height: 100%;
     background-color: #ff0000;
+}
+
+.segment-squashed {
+    background-color: #c51162;
 }
 </style>
