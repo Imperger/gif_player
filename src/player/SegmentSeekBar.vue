@@ -28,15 +28,15 @@ function EndPTS(idx: number): number {
 }
 
 function SegmentProgress(idx: number): number {
-    const start = props.segments[idx];
+    const begin = props.segments[idx];
     const end = EndPTS(idx);
 
     if (props.playTime > end) {
         return 100;
-    } else if (props.playTime < start) {
+    } else if (props.playTime < begin) {
         return 0;
     } else {
-        return (props.playTime - props.segments[idx]) / (end - props.segments[idx]) * 100;
+        return (props.playTime - begin) / (end - begin) * 100;
     }
 }
 
