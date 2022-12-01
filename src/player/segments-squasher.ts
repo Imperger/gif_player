@@ -1,5 +1,3 @@
-import { NoEmit } from "../common/squash-array";
-
 export function SegmentsSquasher(threshold: number) {
     let widthAccumulator = { width: 0, pts: 0 };
     return (value: { width: number, pts: number }, index: number) => {
@@ -12,9 +10,9 @@ export function SegmentsSquasher(threshold: number) {
         if (widthAccumulator.width >= threshold) {
             const width = widthAccumulator.width;
             widthAccumulator.width = 0;
-            return { width, pts: widthAccumulator.pts, squashed: width !== value.width };
+            return [{ width, pts: widthAccumulator.pts, squashed: width !== value.width }];
         } else {
-            return NoEmit;
+            return [];
         }
     };
 }

@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
-import { SquashArray } from '../common/squash-array';
 import { SegmentsSquasher } from './segments-squasher';
 
 const props = defineProps({
@@ -18,11 +17,10 @@ const emit = defineEmits<Emits>();
 const wrapper = ref<HTMLElement>();
 
 const segments = computed(() => {
-    const segmentsRelWidth = [
+    return [
         ...props.segments.map((p, i, s) => ({ width: (p - s[i - 1]) / props.duration * 100, pts: s[i - 1] })).slice(1),
-        { width: (props.duration - props.segments[props.segments.length - 1]) / props.duration * 100, pts: props.segments[props.segments.length - 1] }];
-
-    return SquashArray(segmentsRelWidth, SegmentsSquasher(1));
+        { width: (props.duration - props.segments[props.segments.length - 1]) / props.duration * 100, pts: props.segments[props.segments.length - 1] }]
+        .flatMap(SegmentsSquasher(1));
 });
 
 function Rel(value: number): string {
