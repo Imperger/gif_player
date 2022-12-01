@@ -1,5 +1,5 @@
 import type { ParsedFrame } from 'gifuct-js';
-import { Never } from '../corner-case/never-nullish';
+import { Never } from '../common/never-nullish';
 
 export class FrameBuilder {
     private static readonly DisposeAll = 2;
