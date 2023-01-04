@@ -40,6 +40,12 @@ function onFramesLoaded(frames: ParsedFrame[]) {
 onMounted(() => ctx = canvas.value?.getContext('2d') ?? null);
 onUnmounted(() => isPlaying.value = false);
 
+function PlayPauseByShortcut(e: KeyboardEvent) {
+    if ((e.target as HTMLElement).tagName?.toLowerCase() !== 'button') {
+        PlayPause();
+    }
+}
+
 function PlayPause() {
     if (isPlaying.value) {
 
@@ -150,7 +156,7 @@ const isNextDisabled = computed(() => !(hasFrames && nextFrameIdx.value < frames
 </script>
 
 <template>
-    <div @keydown.left="PrevFrame" @keydown.right="NextFrame" @keydown.space="PlayPause" tabindex="0"
+    <div @keydown.left="PrevFrame" @keydown.right="NextFrame" @keydown.space="PlayPauseByShortcut" tabindex="0"
         class="player-component">
         <canvas ref="canvas" class="view"></canvas>
         <SegmentSeekBar :playTime="playTime" :duration="duration" :segments="framesPTS" @seek="Seek" class="seek-bar" />
