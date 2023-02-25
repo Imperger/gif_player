@@ -15,10 +15,12 @@ const props = defineProps({
     frames: { required: true, type: Array<ParsedFrame> }
 });
 
+const component = ref<HTMLDivElement>();
 const canvas = ref<HTMLCanvasElement>();
 const playTime = ref(0);
 const isPlaying = ref(false);
 const nextFrameIdx = ref(0);
+const componentWidthInner = ref(0);
 
 let frameBuilder: FrameBuilder | null = null;
 let ctx: CanvasRenderingContext2D | null = null;
@@ -39,6 +41,14 @@ function onFramesLoaded(frames: ParsedFrame[]) {
 
 onMounted(() => ctx = canvas.value?.getContext('2d') ?? null);
 onUnmounted(() => isPlaying.value = false);
+
+function OnResize() {
+    componentWidthInner.value = component.value?.clientWidth ?? 0;
+}
+
+onMounted(() => {
+    OnResize();
+});
 
 function PlayPauseByShortcut(e: KeyboardEvent) {
     if ((e.target as HTMLElement).tagName?.toLowerCase() !== 'button') {
@@ -145,6 +155,10 @@ function PrevFrame() {
     RenderFrame();
 }
 
+function NumberToPx(val: number): string {
+    return `${val}px`;
+}
+
 const hasFrames = computed(() => props.frames.length > 0);
 const duration = computed(() => props.frames.reduce((duration, frame) => duration + frame.delay, 0));
 const durationUI = computed(() => MsToMmss(duration.value));
@@ -152,13 +166,14 @@ const playTimeUI = computed(() => MsToMmss(playTime.value));
 const framesPTS = computed(() => props.frames.reduce((pts, frame) => [...pts, pts[pts.length - 1] + frame.delay], [0]).slice(0, props.frames.length));
 const isPrevDisabled = computed(() => !(hasFrames && nextFrameIdx.value > 0));
 const isNextDisabled = computed(() => !(hasFrames && nextFrameIdx.value < framesPTS.value.length - 1));
+const componentWidth = computed(() => componentWidthInner.value);
 
 </script>
 
 <template>
-    <div @keydown.left="PrevFrame" @keydown.right="NextFrame" @keydown.space="PlayPauseByShortcut" tabindex="0"
+    <div v-window-resize="OnResize" ref="component" @keydown.left="PrevFrame" @keydown.right="NextFrame" @keydown.space="PlayPauseByShortcut" tabindex="0"
         class="player-component">
-        <canvas ref="canvas" class="view"></canvas>
+        <canvas ref="canvas" :style="{ width: NumberToPx(componentWidth) }" class="view"></canvas>
         <SegmentSeekBar :playTime="playTime" :duration="duration" :segments="framesPTS" @seek="Seek" class="seek-bar" />
         <div class="seek-panel">
             <div class="time">{{ playTimeUI }}</div>
@@ -168,15 +183,12 @@ const isNextDisabled = computed(() => !(hasFrames && nextFrameIdx.value < frames
             <MyButton @click="PlayPause" :disabled="!hasFrames" class="control-button">
                 <PauseIcon v-if="isPlaying" />
                 <PlayIcon v-else />
-                <template v-slot:tooltip><span class="tooltip">▬</span></template>
             </MyButton>
             <MyButton @click="PrevFrame" :disabled="isPrevDisabled" class="control-button">
                 <SkipPrevIcon />
-                <template v-slot:tooltip><span class="tooltip">←</span></template>
             </MyButton>
             <MyButton @click="NextFrame" :disabled="isNextDisabled" class="control-button">
                 <SkipNextIcon />
-                <template v-slot:tooltip><span class="tooltip">→</span></template>
             </MyButton>
         </div>
     </div>
